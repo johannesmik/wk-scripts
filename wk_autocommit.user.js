@@ -4,8 +4,10 @@
 // @version      0.1
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
-// @match        http*://www.wanikani.com/review/session*
+// @match        http://www.wanikani.com/review/session*
+// @match        https://www.wanikani.com/review/session*
 // @grant        GM_addStyle
+// @run-at       document-end
 // @license      
 // ==/UserScript==
 

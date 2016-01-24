@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.1
+// @version      0.2
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/review/session*
@@ -15,6 +15,13 @@
  * WK Auto Commit
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
+ *
+ *
+ * Version 0.2
+ *  Makes script work with Greasemonkey and Firefox
+ * Version 0.1
+ *  Initial version
+ *
  */
 
 
@@ -91,22 +98,6 @@ var register_check_input = function () {
     });
 };
 
-var loadCSS = function () {
-    /*jshint multistr: true */
-    GM_addStyle("\
-        .WKAUTOCOMMIT_button { \
-            background-color: #C55; \
-            opacity: 1; \
-            display: inline-block; \
-            font-size: 0.8125em; \
-            color: #FFFFFF; \
-            cursor: pointer; \
-            padding: 10px; \
-            vertical-align: bottom; \
-        } \
-    ");
-};
-
 var addButtons = function () {
     
     $("<div />", {
@@ -114,14 +105,20 @@ var addButtons = function () {
                 title : "Toggle Auto Commit Mode",
     })
     .text("Auto Commit is on")
-    .addClass("WKAUTOCOMMIT_button")
+    .css({"background-color":"#C55"})
+    .css({"opacity":"1"})
+    .css({"display":"inline-block"})
+    .css({"font-size":"0.8125em"})
+    .css({"color":"#FFF"})
+    .css({"cursor":"pointer"})
+    .css({"padding":"10px"})
+    .css({"vertical-align":"bottom"})
     .on("click", toggle)
     .prependTo("footer");
 };
 
 var init = function () {  
     console.log('WK Auto Commit (a plugin for Wanikani): Initialization started');
-    loadCSS();
     addButtons();
     register_check_input();
     console.log('WK Auto Commit: Initialization ended');

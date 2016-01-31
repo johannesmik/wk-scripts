@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.2
+// @version      0.3
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/review/session*
 // @match        https://www.wanikani.com/review/session*
+// @match        http://www.wanikani.com/lesson/session*
+// @match        https://www.wanikani.com/lesson/session*
 // @grant        none
 // @run-at       document-end
 // @license      
@@ -16,7 +18,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
- *
+ * Version 0.3
+ *  Script works now on the Lessons page too
  * Version 0.2
  *  Makes script work with Greasemonkey and Firefox
  * Version 0.1
@@ -30,6 +33,15 @@
 
 var activated = true;
 var click_threshold = 600;
+
+var on_lessons_page = false;
+
+var detect_lessons_page = function() {
+    // Returns true if on lessons page
+    var current_url = window.location.href;
+    var lessonsPattern = /^http[s]?:\/\/www.wanikani.com\/lesson\/session.*/;
+    return lessonsPattern.test(current_url);
+};
 
 var toggle = function () {
     if (activated) {
@@ -59,8 +71,15 @@ var commit = function () {
 };
 
 var check_input = function () {
-        var currentItem = $.jStorage.get("currentItem");
-        var currentquestiontype = $.jStorage.get("questionType");
+    
+        if (on_lessons_page) {
+            var currentItem = $.jStorage.get("l/currentQuizItem");
+            var currentquestiontype = $.jStorage.get("l/questionType");
+        } else {
+            var currentItem = $.jStorage.get("currentItem");
+            var currentquestiontype = $.jStorage.get("questionType");
+        }
+    
         var currentresponse = $("#user-response").val();
         
         var currentitem_response = null;
@@ -119,6 +138,7 @@ var addButtons = function () {
 
 var init = function () {  
     console.log('WK Auto Commit (a plugin for Wanikani): Initialization started');
+    on_lessons_page = detect_lessons_page();
     addButtons();
     register_check_input();
     console.log('WK Auto Commit: Initialization ended');
@@ -127,3 +147,4 @@ var init = function () {
 $(function(){
     init();
 });
+

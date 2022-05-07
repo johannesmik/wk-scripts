@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.3
+// @version      0.4
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/review/session*
@@ -18,6 +18,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4
+ *  Compatibility with Lightning mode from the Double-Check userscript
  * Version 0.3
  *  Script works now on the Lessons page too
  * Version 0.2
@@ -41,6 +43,11 @@ var detect_lessons_page = function() {
     var current_url = window.location.href;
     var lessonsPattern = /^http[s]?:\/\/www.wanikani.com\/lesson\/session.*/;
     return lessonsPattern.test(current_url);
+};
+
+var is_userscript_lightningmode_active = function () {
+    /* Returns true if "Lightning Mode" from Userscript Double-Check is active */
+    return $('.doublecheck-active').length >= 1;
 };
 
 var toggle = function () {
@@ -67,7 +74,9 @@ var sanitize = function (str1) {
 
 var commit = function () {
     $("#answer-form form button").click();
-    setTimeout(function(){ $("#answer-form form button").click();}, click_threshold);
+    if (!is_userscript_lightningmode_active()) {
+        setTimeout(function(){ $("#answer-form form button").click();}, click_threshold);
+    }
 };
 
 var check_input = function () {

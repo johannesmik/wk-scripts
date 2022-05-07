@@ -20,6 +20,7 @@
  *
  * Version 0.4
  *  Compatibility with Lightning mode from the Double-Check userscript
+ *  Compatibility with Katakana For On'yomi userscript
  * Version 0.3
  *  Script works now on the Lessons page too
  * Version 0.2
@@ -29,6 +30,7 @@
  *
  */
 
+/* global $, wanakana */
 
 /* jshint -W097 */
 'use strict';
@@ -69,6 +71,7 @@ var toggle = function () {
 var sanitize = function (str1) {
     var str2 = str1.replace(/\s/g, ''); // Removes Whitespaces
     str2 = str2.toLowerCase();
+    str2 = wanakana.toRomaji(str2);
     return str2;
 };
 

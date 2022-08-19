@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4
+// @version      0.4.1
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/review/session*
@@ -18,6 +18,9 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.1
+ *  Bugfix: call commit() at most one time for each item
+ *   (see https://community.wanikani.com/t/userscript-auto-commit-the-end-of-the-enter-key/11825/64)
  * Version 0.4
  *  Compatibility with Lightning mode from the Double-Check userscript
  *  Compatibility with Katakana For On'yomi userscript
@@ -117,6 +120,7 @@ var check_input = function () {
         for (var i in currentitem_response) {
             if (sanitize(currentresponse) === sanitize(currentitem_response[i])) {
                 commit();
+                break;
             } 
         }
 };

@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.1
+// @version      0.4.2
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
-// @match        http://www.wanikani.com/review/session*
-// @match        https://www.wanikani.com/review/session*
-// @match        http://www.wanikani.com/lesson/session*
-// @match        https://www.wanikani.com/lesson/session*
+// @match        http://www.wanikani.com/subjects/*
+// @match        https://www.wanikani.com/subjects/*
 // @grant        none
 // @run-at       document-end
 // @license      
@@ -18,6 +16,12 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.2
+ *  Quickfix: adapt to new Wanikani update, which was deployed on March 27th, 2023
+ *   (see https://community.wanikani.com/t/updates-to-lessons-reviews-and-extra-study/60912)
+ *   - removed jStorage and jQuery references
+ *   - changed the @match for the new lesson and review urls
+ *   - Note: did not check with compatibilites of other user scripts (like Lightning mode or Katakana for On'yomi) yet.
  * Version 0.4.1
  *  Bugfix: call commit() at most one time for each item
  *   (see https://community.wanikani.com/t/userscript-auto-commit-the-end-of-the-enter-key/11825/64)
@@ -33,7 +37,7 @@
  *
  */
 
-/* global $, wanakana */
+/* global wanakana */
 
 /* jshint -W097 */
 'use strict';
@@ -41,32 +45,26 @@
 var activated = true;
 var click_threshold = 600;
 
-var on_lessons_page = false;
-
-var detect_lessons_page = function() {
-    // Returns true if on lessons page
-    var current_url = window.location.href;
-    var lessonsPattern = /^http[s]?:\/\/www.wanikani.com\/lesson\/session.*/;
-    return lessonsPattern.test(current_url);
-};
+let expected_answers = [];
 
 var is_userscript_lightningmode_active = function () {
     /* Returns true if "Lightning Mode" from Userscript Double-Check is active */
-    return $('.doublecheck-active').length >= 1;
+    return document.querySelector('.doublecheck-active')?.length >= 1;
 };
 
 var toggle = function () {
+    var button = document.querySelector("#WKAUTOCOMMIT_button");
     if (activated) {
         // Deactivates WK Auto Commit mode
-        $("#WKAUTOCOMMIT_button").prop('title', "Switch auto commit on");
-        $("#WKAUTOCOMMIT_button").css({"opacity":"0.5"});
-        $("#WKAUTOCOMMIT_button").text("Auto Commit is off");
+        button.title = "Switch auto commit on";
+        button.style.opacity = 0.5;
+        button.textContent = "Auto Commit is off";
         activated = false;
     } else {
         // Activates WK Auto Commit mode
-        $("#WKAUTOCOMMIT_button").prop('title', "Switch auto commit off");
-        $("#WKAUTOCOMMIT_button").css({"opacity":"1.0"});
-        $("#WKAUTOCOMMIT_button").text("Auto Commit is on");
+        button.title = "Switch auto commit off";
+        button.style.opacity = 1.0;
+        button.textContent = "Auto Commit is on";
         activated = true;
     }
 };
@@ -74,93 +72,90 @@ var toggle = function () {
 var sanitize = function (str1) {
     var str2 = str1.replace(/\s/g, ''); // Removes Whitespaces
     str2 = str2.toLowerCase();
-    str2 = wanakana.toRomaji(str2);
+    if ("wanakana" in window) {
+        str2 = wanakana.toRomaji(str2);
+    }
     return str2;
 };
 
 var commit = function () {
-    $("#answer-form form button").click();
+    const inputbutton = document.querySelector(".quiz-input__submit-button");
+    inputbutton.click();
     if (!is_userscript_lightningmode_active()) {
-        setTimeout(function(){ $("#answer-form form button").click();}, click_threshold);
+        setTimeout(function(){ inputbutton.click();}, click_threshold);
     }
 };
 
 var check_input = function () {
-    
-        if (on_lessons_page) {
-            var currentItem = $.jStorage.get("l/currentQuizItem");
-            var currentquestiontype = $.jStorage.get("l/questionType");
-        } else {
-            var currentItem = $.jStorage.get("currentItem");
-            var currentquestiontype = $.jStorage.get("questionType");
-        }
-    
-        var currentresponse = $("#user-response").val();
-        
-        var currentitem_response = null;
-
-        // Get possible responses from current item depending on the task (reading or meaning)
-        if (currentquestiontype === "meaning") {
-            currentitem_response = currentItem.en;
-            if (currentItem.syn) {
-                currentitem_response = currentitem_response.concat(currentItem.syn);
-            }
-        } else if (currentquestiontype === "reading") {
-            if (currentItem.voc) { // Vocab word
-                currentitem_response = currentItem.kana;
-            } else if (currentItem.emph === 'kunyomi') { // Kanji: Kun reading
-                currentitem_response = currentItem.kun;
-            } else if (currentItem.emph === 'onyomi') { // Kanji: On reading 
-                currentitem_response = currentItem.on;
-            } else {
-                console.log("WK Auto Commit: Could not find response");
-            }
-        }
-
-        for (var i in currentitem_response) {
-            if (sanitize(currentresponse) === sanitize(currentitem_response[i])) {
+        // console.log("Checking Input", current_expected);
+        const currentresponse = document.querySelector("#user-response").value;
+        for (var i in expected_answers) {
+            if (sanitize(currentresponse) === sanitize(expected_answers[i])) {
                 commit();
                 break;
-            } 
+            }
         }
 };
 
 var register_check_input = function () {
-    $("#user-response").on("keyup", function (event) {    
-        if (activated) {   
+    var userinput = document.querySelector("#user-response");
+    userinput.onkeyup = function (event) {
+        if (activated) {
             check_input();
         }
-    });
+    };
 };
 
-var addButtons = function () {
-    
-    $("<div />", {
-                id : "WKAUTOCOMMIT_button",
-                title : "Toggle Auto Commit Mode",
-    })
-    .text("Auto Commit is on")
-    .css({"background-color":"#C55"})
-    .css({"opacity":"1"})
-    .css({"display":"inline-block"})
-    .css({"font-size":"0.8125em"})
-    .css({"color":"#FFF"})
-    .css({"cursor":"pointer"})
-    .css({"padding":"10px"})
-    .css({"vertical-align":"bottom"})
-    .on("click", toggle)
-    .prependTo("footer");
+var addButton = function () {
+    /* Define button */
+    var button = document.querySelector("#WKAUTOCOMMIT_button");
+    if (!button) {
+        button = document.createElement("div");
+        button.id = "WKAUTOCOMMIT_button";
+        button.title = "Toggle Auto Commit Mode";
+        button.textContent = "Auto Commit is on";
+        button.style.backgroundColor = "#C55";
+        button.style.opacity = 1;
+        button.style.display = "inline-block";
+        button.style.fontSize = "0.8125em";
+        button.style.color = "#FFF";
+        button.style.cursor = "pointer"
+        button.style.padding = "10px";
+        button.style.verticalAlign = "bottom";
+        button.onclick = toggle;
+
+        /* Prepend button to footer */
+        var body = document.querySelector("#turbo-body");
+        body.appendChild(button);
+    }
 };
 
-var init = function () {  
-    console.log('WK Auto Commit (a plugin for Wanikani): Initialization started');
-    on_lessons_page = detect_lessons_page();
-    addButtons();
+/* React on a willShowNextQuestion event, which is triggered by WaniKani when a new question is shown */
+window.addEventListener("willShowNextQuestion", function(event) {
+    //console.log("Received willShowNextQuestion event from WaniKani", event);
+
     register_check_input();
-    console.log('WK Auto Commit: Initialization ended');
-};
+    addButton();
 
-$(function(){
-    init();
+    /* Get expected answers from current item depending on the task (reading or meaning) */
+    expected_answers = []
+    const item = event.detail;
+    const subject = item.subject;
+    if (item.questionType === "meaning") {
+        expected_answers = expected_answers.concat(subject.meanings);
+    } else if (item.questionType === "reading") {
+        if (subject.type === 'Vocabulary') {
+            expected_answers = expected_answers.concat(subject.readings.map((e) => e.reading));
+        } else if (subject.type === 'Kanji') {
+            if (subject.primary_reading_type === 'kunyomi') {
+                expected_answers = expected_answers.concat(subject.kunyomi);
+            } else if (subject.primary_reading_type === 'onyomi') {
+                expected_answers = expected_answers.concat(subject.onyomi);
+            }
+        }
+    }
 });
 
+(function () {
+    console.log('WK Auto Commit (a plugin for Wanikani): Initialized');
+})();

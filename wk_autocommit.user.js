@@ -17,7 +17,7 @@
  * Therefore, you have to use the 'enter' key way less than before.
  *
  * Version 0.4.2
- *  Quickfix: adapt to new Wanikani update, which was deployed on March 27th, 2023
+ *  Quickfix: adapt to Wanikani update, which was deployed on March 27th, 2023
  *   (see https://community.wanikani.com/t/updates-to-lessons-reviews-and-extra-study/60912)
  *   - removed jStorage and jQuery references
  *   - changed the @match for the new lesson and review urls

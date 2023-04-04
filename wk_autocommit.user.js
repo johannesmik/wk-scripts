@@ -77,15 +77,15 @@ var sanitize = function (str1) {
 };
 
 var commit = function () {
-    if(!commit.usable) return;
+    if(!commit.usable)  return;
+    // Temporarily deactivate the commit function to prevent double commits
+    commit.usable = false;
     const inputbutton = document.querySelector(".quiz-input__submit-button");
     inputbutton.click();
     if (!is_userscript_lightningmode_active()) {
         setTimeout(function(){ inputbutton.click();}, click_threshold);
     }
 
-    // Temporarily deactivate the commit function to prevent double commits
-    commit.usable = false;
 };
 
 var check_input = function () {

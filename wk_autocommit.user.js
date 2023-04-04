@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.2
+// @version      0.4.3
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/subjects/*
 // @match        https://www.wanikani.com/subjects/*
 // @grant        none
 // @run-at       document-end
-// @license      
+// @license
 // ==/UserScript==
 
 /*
@@ -16,6 +16,9 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.3
+ *  Bugfix: prevent a double commit when typing fast, which led to a shaking input window or in the worst case to
+ *   wrong input.
  * Version 0.4.2
  *  Quickfix: adapt to Wanikani update, which was deployed on March 27th, 2023
  *   (see https://community.wanikani.com/t/updates-to-lessons-reviews-and-extra-study/60912)
@@ -36,8 +39,6 @@
  *  Initial version
  *
  */
-
-/* global wanakana */
 
 /* jshint -W097 */
 'use strict';
@@ -72,18 +73,19 @@ var toggle = function () {
 var sanitize = function (str1) {
     var str2 = str1.replace(/\s/g, ''); // Removes Whitespaces
     str2 = str2.toLowerCase();
-    if ("wanakana" in window) {
-        str2 = wanakana.toRomaji(str2);
-    }
     return str2;
 };
 
 var commit = function () {
+    if(!commit.usable) return;
     const inputbutton = document.querySelector(".quiz-input__submit-button");
     inputbutton.click();
     if (!is_userscript_lightningmode_active()) {
         setTimeout(function(){ inputbutton.click();}, click_threshold);
     }
+
+    // Temporarily deactivate the commit function to prevent double commits
+    commit.usable = false;
 };
 
 var check_input = function () {
@@ -154,8 +156,12 @@ window.addEventListener("willShowNextQuestion", function(event) {
             }
         }
     }
+
+    // Make the commit function usable again
+    commit.usable = true;
 });
 
 (function () {
     console.log('WK Auto Commit (a plugin for Wanikani): Initialized');
 })();
+

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.3
+// @version      0.4.4
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/subjects/*
@@ -16,6 +16,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.4
+ *  Bugfix: correctly detect double-check from lightning mode
  * Version 0.4.3
  *  Bugfix: prevent a double commit when typing fast, which led to a shaking input window or in the worst case to
  *   wrong input.
@@ -50,7 +52,7 @@ let expected_answers = [];
 
 var is_userscript_lightningmode_active = function () {
     /* Returns true if "Lightning Mode" from Userscript Double-Check is active */
-    return document.querySelector('.doublecheck-active')?.length >= 1;
+    return Boolean(document.querySelector('.doublecheck-active'));
 };
 
 var toggle = function () {

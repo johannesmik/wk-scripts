@@ -103,11 +103,11 @@ var check_input = function () {
 
 var register_check_input = function () {
     var userinput = document.querySelector("#user-response");
-    userinput.onkeyup = function (event) {
+    userinput.addEventListener("input", function (event) {
         if (activated) {
             check_input();
         }
-    };
+    });
 };
 
 var addButton = function () {

@@ -1,7 +1,8 @@
 // ==UserScript==
+// 
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.4
+// @version      0.4.5
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/subjects/*
@@ -16,6 +17,9 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.5
+ *  Consider user-defined synonyms for the meaning of a vocab/kanji/radical as well
+ *  Further prevent double commits by using the "input" element's "input" event instead of the "onkeyup" function
  * Version 0.4.4
  *  Bugfix: correctly detect double-check from lightning mode
  * Version 0.4.3
@@ -49,6 +53,7 @@ var activated = true;
 var click_threshold = 600;
 
 let expected_answers = [];
+let synonyms = {};
 
 var is_userscript_lightningmode_active = function () {
     /* Returns true if "Lightning Mode" from Userscript Double-Check is active */
@@ -79,7 +84,7 @@ var sanitize = function (str1) {
 };
 
 var commit = function () {
-    if(!commit.usable)  return;
+    if(!commit.usable) return;
     // Temporarily deactivate the commit function to prevent double commits
     commit.usable = false;
     const inputbutton = document.querySelector(".quiz-input__submit-button");
@@ -91,8 +96,8 @@ var commit = function () {
 };
 
 var check_input = function () {
-        // console.log("Checking Input", current_expected);
         const currentresponse = document.querySelector("#user-response").value;
+        //console.log("Checking Input", currentresponse, expected_answers);
         for (var i in expected_answers) {
             if (sanitize(currentresponse) === sanitize(expected_answers[i])) {
                 commit();
@@ -134,12 +139,27 @@ var addButton = function () {
     }
 };
 
+/* Load user synonyms. Load them only once. */
+var loadSynonyms = function () {
+    if (loadSynonyms.loaded) return;
+    const dataUserSynonyms = document.querySelector('script[data-quiz-user-synonyms-target]');
+    if (!dataUserSynonyms) return;
+    synonyms = JSON.parse(dataUserSynonyms.innerHTML);
+    loadSynonyms.loaded = true;
+};
+
+/* Save synonyms added by the user during the quiz session */
+window.addEventListener("didUpdateUserSynonyms", function(event) {
+    //console.log("Received didUpdateUserSynonyms event from WaniKani", event);
+    synonyms[event.detail.subjectId] = event.detail.synonyms;
+});
+
 /* React on a willShowNextQuestion event, which is triggered by WaniKani when a new question is shown */
 window.addEventListener("willShowNextQuestion", function(event) {
     //console.log("Received willShowNextQuestion event from WaniKani", event);
-
     register_check_input();
     addButton();
+    loadSynonyms();
 
     /* Get expected answers from current item depending on the task (reading or meaning) */
     expected_answers = []
@@ -147,6 +167,8 @@ window.addEventListener("willShowNextQuestion", function(event) {
     const subject = item.subject;
     if (item.questionType === "meaning") {
         expected_answers = expected_answers.concat(subject.meanings);
+        const subjectSynonyms = (subject.id in synonyms) ? synonyms[subject.id] : [];
+        expected_answers = expected_answers.concat(subjectSynonyms);
     } else if (item.questionType === "reading") {
         if (subject.type === 'Vocabulary') {
             expected_answers = expected_answers.concat(subject.readings.map((e) => e.reading));

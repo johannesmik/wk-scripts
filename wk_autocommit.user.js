@@ -1,5 +1,4 @@
 // ==UserScript==
-// 
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
 // @version      0.4.5

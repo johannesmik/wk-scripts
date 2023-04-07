@@ -16,6 +16,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.6
+ *  Revert input detection to onkeyup, as "input" event missed kana input
  * Version 0.4.5
  *  Consider user-defined synonyms for the meaning of a vocab/kanji/radical as well
  *  Further prevent double commits by using the "input" element's "input" event instead of the "onkeyup" function
@@ -107,11 +109,12 @@ var check_input = function () {
 
 var register_check_input = function () {
     var userinput = document.querySelector("#user-response");
-    userinput.addEventListener("input", function (event) {
+    //userinput.addEventListener("input", function (event) {
+    userinput.onkeyup = function (event) {
         if (activated) {
             check_input();
         }
-    });
+    };
 };
 
 var addButton = function () {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.6
+// @version      0.4.7
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/subjects/*
@@ -16,6 +16,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.7
+ *  Fix: show button to activate/deactivate in footer again.
  * Version 0.4.6
  *  Revert input detection to onkeyup, as "input" event missed kana input
  * Version 0.4.5
@@ -132,12 +134,13 @@ var addButton = function () {
         button.style.color = "#FFF";
         button.style.cursor = "pointer"
         button.style.padding = "10px";
+        button.style.marginLeft = "10px";
         button.style.verticalAlign = "bottom";
         button.onclick = toggle;
 
         /* Prepend button to footer */
-        var body = document.querySelector("#turbo-body");
-        body.appendChild(button);
+        var footer = document.querySelector(".quiz-footer");
+        footer.appendChild(button);
     }
 };
 

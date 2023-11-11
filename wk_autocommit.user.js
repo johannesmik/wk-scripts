@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         WK Auto Commit
 // @namespace    WKAUTOCOMMIT
-// @version      0.4.7
+// @version      0.4.8
 // @description  Auto commit for Wanikani
 // @author       Johannes Mikulasch
 // @match        http://www.wanikani.com/subjects/*
 // @match        https://www.wanikani.com/subjects/*
+// @match        http://www.wanikani.com/subject-lessons/*
+// @match        https://www.wanikani.com/subject-lessons/*
 // @grant        none
 // @run-at       document-end
 // @license
@@ -16,6 +18,8 @@
  * If you typed in the correct answer then it is automatically commited.
  * Therefore, you have to use the 'enter' key way less than before.
  *
+ * Version 0.4.8
+ *  Fix: Run this script on "wanikani.com/subject-lessons", as Wanikani have just renamed their lessons URL
  * Version 0.4.7
  *  Fix: show button to activate/deactivate in footer again.
  * Version 0.4.6
